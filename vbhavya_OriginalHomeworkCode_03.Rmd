@@ -16,10 +16,93 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r preliminaries}
 library(curl)
-library(tidyverse) #includes ggplot2
+library(ggplot2) #I would've just called library(tidyverse) but R is telling me to update and I really don't want to. R updates terrify me.  
+library(rmdformats)
 
 
-f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/zombies.csv") #importing the zombies dataset from Chris' github
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/zombies.csv") #importing the zombies data set from Chris' github
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 head(d)
 ```
+
+# Assignment problems
+
+## Question 1: Calculating the population means and standard deviations. 
+
+var() and sd() commands as these are for samples. 
+Therefore, I made a function stdev() to calculate standard deviation of the population, using population mean and n (from length(d$variable))
+
+```{r problem1}
+
+#writing a function for population standard deviation of variable y 
+stdev <- function(y) {
+  sqrt(sum((y - mean(y))^2)/length(y))}
+
+#height
+mean(d$height) 
+stdev(d$height)
+
+#weight
+mean(d$weight) 
+stdev(d$weight)
+
+#No. of zombies killed
+mean(d$zombies_killed) 
+stdev(d$zombies_killed)
+
+#Years of education
+mean(d$years_of_education)
+stdev(d$years_of_education)
+
+#Age
+mean(d$age)
+stdev(d$age)
+```
+## Question 2: Use {ggplot} to make boxplots of each of these variables by gender.
+
+```{r problem2}
+
+# Variable = height
+p <- ggplot(data = d, aes(x = gender, y = height,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = weight
+p <- ggplot(data = d, aes(x = gender, y = weight,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = age
+p <- ggplot(data = d, aes(x = gender, y = age,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = No of zombies killed
+p <- ggplot(data = d, aes(x = gender, y = zombies_killed,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = Years of education
+p <- ggplot(data = d, aes(x = gender, y = years_of_education,
+    color = factor(gender))) + geom_boxplot()
+p
+```
+
+## Question 3: Use {ggplot} to make scatterplots of height and weight in relation to age. Do these variables seem to be related? In what way?
+
+```{r problem3}
+#Age v/s height
+
+p <- ggplot(data = d, aes(x = age, y = height)) + geom_point()
+p
+
+#Age v/s weight
+
+p <- ggplot(data = d, aes(x = age, y = weight)) + geom_point()
+p
+```
+Yes, there seems to be a positive correlation between age and both height and weight. This means, as age increases, both height and weight are likely to increase as well. 
+
+However, the relationship between age and height seems to be more correlated upto 25 years of age, after which it flattens. 
+
+The relationship between age and weight is much more linear, but seems to have a lot of scatter around where a best-fit regression would be. 
