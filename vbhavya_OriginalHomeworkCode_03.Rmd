@@ -1,0 +1,25 @@
+---
+title: "Homework 3"
+author: "Bhavya Deepti Vadavalli"
+date: "2023-10-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preliminaries: 
+
+1. Installing and getting needed packes into the environment 
+2. Importing the dataset into the environment. 
+
+```{r preliminaries}
+library(curl)
+library(tidyverse) #includes ggplot2
+
+
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/zombies.csv") #importing the zombies dataset from Chris' github
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+```
