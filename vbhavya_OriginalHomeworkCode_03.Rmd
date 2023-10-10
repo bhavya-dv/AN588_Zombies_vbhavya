@@ -2,7 +2,8 @@
 title: "Homework 3"
 author: "Bhavya Deepti Vadavalli"
 date: "2023-10-09"
-output: html_document
+output:
+rmdformats::readthedown
 ---
 
 ```{r setup, include=FALSE}
@@ -106,3 +107,35 @@ Yes, there seems to be a positive correlation between age and both height and we
 However, the relationship between age and height seems to be more correlated upto 25 years of age, after which it flattens. 
 
 The relationship between age and weight is much more linear, but seems to have a lot of scatter around where a best-fit regression would be. 
+
+## Question 4: Using histograms and Q-Q plots, check whether the quantitative variables seem to be drawn from a normal distribution. Which seem to be and which do not (hint: not all are drawn from the normal distribution)? For those that are not normal, can you determine from which common distribution they are drawn?
+
+```{r problem4}
+
+#Variable = weight
+hist(d$weight, probability = TRUE)
+qqnorm(d$weight, main = "Normal QQ plot for weight of individuals") + 
+  qqline(d$weight, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
+
+#Variable = height
+hist(d$height, probability = TRUE)
+qqnorm(d$height, main = "Normal QQ plot for height of individuals") + 
+  qqline(d$height, col = "gray") # fits with the QQ-line very well. Very normally distributed. 
+
+#Variable = age
+hist(d$age, probability = TRUE)
+qqnorm(d$age, main = "Normal QQ plot for age of individuals") + 
+  qqline(d$age, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
+
+#Variable = No. of zombies killed
+hist(d$zombies_killed, probability = TRUE) #not a normal distribution
+qqnorm(d$zombies_killed, main = "QQ plot for no. of zombies killed by individuals") + 
+  qqline(d$zombies_killed, col = "gray") # Not a normal distribution
+
+#Variable = years of education
+hist(d$years_of_education, probability = TRUE) #not a normal distribution
+qqnorm(d$years_of_education, main = "QQ plot for years of education of individuals") + 
+  qqline(d$years_of_education, col = "gray") # Not a normal distribution
+```
+
+Age, height and weight seem to be the variables that are derived from normal distributions. Their histograms are bell-shaped curves and 
