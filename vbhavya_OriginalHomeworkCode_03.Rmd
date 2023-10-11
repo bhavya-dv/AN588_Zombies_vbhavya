@@ -1,18 +1,21 @@
 ---
-title: "Homework 3"
+title: "Homework 3: Some of my best friends are zombies!"
 author: "Bhavya Deepti Vadavalli"
 date: "2023-10-09"
 output:
-rmdformats::readthedown
+  rmdformats::readthedown:
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+```{r zombiegir, echo=FALSE, out.width = '50%'}
+knitr::include_graphics("gggdrible.gif")
+```
 
 # Preliminaries: 
 
-1. Installing and getting needed packes into the environment 
+1. Installing and getting needed packages into the environment 
 2. Importing the dataset into the environment. 
 
 ```{r preliminaries}
@@ -114,28 +117,111 @@ The relationship between age and weight is much more linear, but seems to have a
 
 #Variable = weight
 hist(d$weight, probability = TRUE)
-qqnorm(d$weight, main = "Normal QQ plot for weight of individuals") + 
-  qqline(d$weight, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
+qqnorm(d$weight, main = "Normal QQ plot for weight of individuals")  
+qqline(d$weight, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
 
 #Variable = height
 hist(d$height, probability = TRUE)
-qqnorm(d$height, main = "Normal QQ plot for height of individuals") + 
-  qqline(d$height, col = "gray") # fits with the QQ-line very well. Very normally distributed. 
+qqnorm(d$height, main = "Normal QQ plot for height of individuals") 
+qqline(d$height, col = "gray") # fits with the QQ-line very well. Very normally distributed. 
 
 #Variable = age
 hist(d$age, probability = TRUE)
-qqnorm(d$age, main = "Normal QQ plot for age of individuals") + 
-  qqline(d$age, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
+qqnorm(d$age, main = "Normal QQ plot for age of individuals") 
+qqline(d$age, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
 
 #Variable = No. of zombies killed
 hist(d$zombies_killed, probability = TRUE) #not a normal distribution
-qqnorm(d$zombies_killed, main = "QQ plot for no. of zombies killed by individuals") + 
-  qqline(d$zombies_killed, col = "gray") # Not a normal distribution
+qqnorm(d$zombies_killed, main = "QQ plot for no. of zombies killed by individuals") 
+qqline(d$zombies_killed, col = "gray") # Not a normal distribution
 
 #Variable = years of education
 hist(d$years_of_education, probability = TRUE) #not a normal distribution
-qqnorm(d$years_of_education, main = "QQ plot for years of education of individuals") + 
-  qqline(d$years_of_education, col = "gray") # Not a normal distribution
+qqnorm(d$years_of_education, main = "QQ plot for years of education of individuals")  
+qqline(d$years_of_education, col = "gray") # Not a normal distribution
 ```
 
-Age, height and weight seem to be the variables that are derived from normal distributions. Their histograms are bell-shaped curves and 
+Age, height and weight seem to be the variables that are derived from normal distributions. Their histograms are bell-shaped curves and the points align with the QQ-norm line well. Some deviation is expected at the extremes. 
+
+However, neither the "zombies_killed" nor the "years of education" variable was normally distributed. I would guess that these variables are poisson distributed, where the random variable X is the number of zombies killed, or the years or education respectively. This is also echoed in the qq-plots. 
+
+## Question 5: Now use the sample() function to sample ONE subset of 30 zombie survivors (without replacement) from this population and calculate the mean and sample standard deviation for each variable. Also estimate the standard error for each variable, and construct the 95% confidence interval for each mean.
+
+```{r problem5.1}
+#creating a different sample (n=30) for each variable
+
+sampledat <- function(x) {
+  sample(x, size = 30, replace = FALSE)
+}
+
+#For variable = weight 
+s<- sampledat(d$weight)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci
+
+#For variable = height 
+s<- sampledat(d$height)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci
+
+#For variable = age 
+s<- sampledat(d$age)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci
+```
+
+For the variables above that are from a normal distribution, the way to calculate the 95% CI is pretty straightforward. However, for variables like "zombies_killed" or "years_of_"education", which I suspect are from a poisson distribution each, we can use the Central Limit Theorem to make normal approximations of the poisson distributions. These can then be used to find the 95% CIs for the variables. 
+
+```{r problem5.clt}
+# Variable: Zombies killed
+lambda <- mean(d$zombies_killed)
+stdev <- sqrt(lambda)
+
+#normal approximation:
+norm_zombies_killed <- rnorm(n=1000, mean = lambda, sd = stdev)
+hist(norm_zombies_killed, probability = TRUE) #looks like a normal distribution now
+#norm_zombies_killed is our new population for zombies_killed now, which is normally approximated
+
+s<- sampledat(norm_zombies_killed)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci #CI for norm_zombies_killed
+
+# Variable: years of education
+lambda <- mean(d$years_of_education)
+stdev <- sqrt(lambda)
+
+#normal approximation:
+norm_years_of_edu <- rnorm(n=1000, mean = lambda, sd = stdev)
+hist(norm_years_of_edu, probability = TRUE) #looks like a normal distribution now
+#norm_years_of_edu is our new population for years_of_education now, which is normally approximated
+
+s<- sampledat(norm_years_of_edu)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci #CI for norm_years_of_edu
+
+```
