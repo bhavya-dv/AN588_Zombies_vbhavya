@@ -1,0 +1,498 @@
+---
+title: "vbhavya_Peer Commentary_reesehs_03"
+author: "Reese Hotten-Somers"
+date: "2023-10-13"
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r zombiegif, echo=FALSE, out.width = '50%'}
+knitr::include_graphics("gggdrible.gif")
+
+#reesehs: so cool that you were able to include a gif! I spent so long trying to figure out my code that I wasn't able to figure it out! But this looks great!
+```
+
+# Preliminaries: 
+
+1. Installing and getting needed packages into the environment 
+2. Importing the dataset into the environment. 
+
+```{r preliminaries}
+library(curl)
+library(ggplot2) #I would've just called library(tidyverse) but R is telling me to update and I really don't want to. R updates terrify me.  
+library(rmdformats)
+
+#reesehs: R updates are scary but you will basically just redownload the software and it will be the exact same, so don't put off updating!
+
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/zombies.csv") #importing the zombies data set from Chris' github
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+```
+
+# Assignment problems
+
+## Question 1: Calculating the population means and standard deviations. 
+
+var() and sd() commands as these are for samples. 
+Therefore, I made a function stdev() to calculate standard deviation of the population, using population mean and n (from length(d$variable))
+
+```{r problem1}
+
+#writing a function for population standard deviation of variable y 
+stdev <- function(y) {
+  sqrt(sum((y - mean(y))^2)/length(y))}
+
+#reesehs: so smart! I really liked how you created a function instead of typing it out for everyone. This for sure makes the code more efficient. 
+
+#height
+mean(d$height) 
+stdev(d$height)
+
+#weight
+mean(d$weight) 
+stdev(d$weight)
+
+#No. of zombies killed
+mean(d$zombies_killed) 
+stdev(d$zombies_killed)
+
+#Years of education
+mean(d$years_of_education)
+stdev(d$years_of_education)
+
+#Age
+mean(d$age)
+stdev(d$age)
+```
+## Question 2: Use {ggplot} to make boxplots of each of these variables by gender.
+
+```{r problem2}
+
+# Variable = height
+p <- ggplot(data = d, aes(x = gender, y = height,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = weight
+p <- ggplot(data = d, aes(x = gender, y = weight,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = age
+p <- ggplot(data = d, aes(x = gender, y = age,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = No of zombies killed
+p <- ggplot(data = d, aes(x = gender, y = zombies_killed,
+    color = factor(gender))) + geom_boxplot()
+p
+
+# Variable = Years of education
+p <- ggplot(data = d, aes(x = gender, y = years_of_education,
+    color = factor(gender))) + geom_boxplot()
+p
+
+#reesehs: this all looks like wonderful code. I especially like that you colored the boxes by gender. 
+```
+
+## Question 3: Use {ggplot} to make scatterplots of height and weight in relation to age. Do these variables seem to be related? In what way?
+
+```{r problem3}
+#Age v/s height
+
+p <- ggplot(data = d, aes(x = age, y = height)) + geom_point()
+p
+
+#Age v/s weight
+
+p <- ggplot(data = d, aes(x = age, y = weight)) + geom_point()
+p
+```
+Yes, there seems to be a positive correlation between age and both height and weight. This means, as age increases, both height and weight are likely to increase as well. 
+
+However, the relationship between age and height seems to be more correlated upto 25 years of age, after which it flattens. 
+
+The relationship between age and weight is much more linear, but seems to have a lot of scatter around where a best-fit regression would be. 
+
+## Question 4: Using histograms and Q-Q plots, check whether the quantitative variables seem to be drawn from a normal distribution. Which seem to be and which do not (hint: not all are drawn from the normal distribution)? For those that are not normal, can you determine from which common distribution they are drawn?
+
+```{r problem4}
+
+#Variable = weight
+hist(d$weight, probability = TRUE)
+qqnorm(d$weight, main = "Normal QQ plot for weight of individuals")  
+qqline(d$weight, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
+
+#Variable = height
+hist(d$height, probability = TRUE)
+qqnorm(d$height, main = "Normal QQ plot for height of individuals") 
+qqline(d$height, col = "gray") # fits with the QQ-line very well. Very normally distributed. 
+
+#Variable = age
+hist(d$age, probability = TRUE)
+qqnorm(d$age, main = "Normal QQ plot for age of individuals") 
+qqline(d$age, col = "gray") # fits with the QQ-line quite well (except the tails), can be roughly estimated to a normal distribution
+
+#Variable = No. of zombies killed
+hist(d$zombies_killed, probability = TRUE) #not a normal distribution
+qqnorm(d$zombies_killed, main = "QQ plot for no. of zombies killed by individuals") 
+qqline(d$zombies_killed, col = "gray") # Not a normal distribution
+
+#Variable = years of education
+hist(d$years_of_education, probability = TRUE) #not a normal distribution
+qqnorm(d$years_of_education, main = "QQ plot for years of education of individuals")  
+qqline(d$years_of_education, col = "gray") # Not a normal distribution
+```
+
+Age, height and weight seem to be the variables that are derived from normal distributions. Their histograms are bell-shaped curves and the points align with the QQ-norm line well. Some deviation is expected at the extremes. 
+
+However, neither the "zombies_killed" nor the "years of education" variable was normally distributed. I would guess that these variables are poisson distributed, where the random variable X is the number of zombies killed, or the years or education respectively. This is also echoed in the qq-plots. 
+
+## Question 5: Now use the sample() function to sample ONE subset of 30 zombie survivors (without replacement) from this population and calculate the mean and sample standard deviation for each variable. Also estimate the standard error for each variable, and construct the 95% confidence interval for each mean.
+
+```{r problem5.1}
+#creating a different sample (n=30) for each variable
+set.seed(1)
+
+sampledat <- function(x) {
+  sample(x, size = 30, replace = FALSE)
+}
+#reesehs: again with the functions, this is such a better and more efficent way to code! 
+
+#For variable = weight 
+s<- sampledat(d$weight)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci
+
+s_weight <- s 
+
+#For variable = height 
+s<- sampledat(d$height)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci
+
+#reesehs: I do believe that we can use the sd() function because we're working on sample data now? 
+
+s_height <- s
+
+#For variable = age 
+s<- sampledat(d$age)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci
+
+s_age <- s
+```
+
+For the variables above that are from a normal distribution, the way to calculate the 95% CI is pretty straightforward. However, for variables like "zombies_killed" or "years_of_"education", which I suspect are from a poisson distribution each, we can use the Central Limit Theorem to make normal approximations of the poisson distributions. These can then be used to find the 95% CIs for the variables. 
+
+```{r problem5.clt}
+# Variable: Zombies killed
+lambda <- mean(d$zombies_killed)
+stdev <- sqrt(lambda)
+
+#reesehs: it seems like you have an amazing grasp on the material, I'm so jealous!
+
+#normal approximation:
+norm_zombies_killed <- rnorm(n=1000, mean = lambda, sd = stdev)
+hist(norm_zombies_killed, probability = TRUE) #looks like a normal distribution now
+#norm_zombies_killed is our new population for zombies_killed now, which is normally approximated
+
+s<- sampledat(norm_zombies_killed)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci #CI for norm_zombies_killed
+
+#reesehs: I really liked how you did this and explained it in your comments!
+
+s_zombies_killed <- s
+
+# Variable: years of education
+lambda <- mean(d$years_of_education)
+stdev <- sqrt(lambda)
+
+#normal approximation:
+norm_years_of_edu <- rnorm(n=1000, mean = lambda, sd = stdev)
+hist(norm_years_of_edu, probability = TRUE) #looks like a normal distribution now
+#norm_years_of_edu is our new population for years_of_education now, which is normally approximated
+
+s<- sampledat(norm_years_of_edu)
+m <- mean(s) 
+sd(s) #can use this now because this is a sample not population? 
+sem <- sd(s)/sqrt(30)
+lower <- m - qnorm(1 - 0.05/2) * sem  #because this is from a normal distribution
+upper <- m + qnorm(1 - 0.05/2) * sem  
+ci <- c(lower, upper)
+ci #CI for norm_years_of_edu
+s_education <- s
+
+```
+
+## Question 6: Now draw 99 more random samples of 30 zombie apocalypse survivors, and calculate the mean for each variable for each of these samples. Together with the first sample you drew, you now have a set of 100 means for each variable (each based on 30 observations), which constitutes a sampling distribution for each variable. What are the means and standard deviations of this distribution of means for each variable? 
+### Variable: Weight
+```{r problem6.weight}
+stdev <- function(y) {
+  sqrt(sum((y - mean(y))^2)/length(y))}
+#reesehs: do functions carry over from different chunks? If so, you might not need to restate this function. But I'm not really sure!
+
+set.seed(1)
+y <- d$weight #change variable every time
+x <- rnorm(1000, mean(y), stdev(y))
+hist(x, probability = TRUE)
+
+#reesehs: you might want to note in your code why you are creating a histogram at this point? I'm a little confused!
+
+k <- 99  # number of samples. 
+n <- 30  # size of each sample
+s <- NULL  # dummy variable to hold each sample
+for (i in 1:k) {
+    s[[i]] <- sample(x, size = n, replace = FALSE)
+}
+
+s[[100]] <- s_weight # appending the sample of size n from question 5 to the sampling distribution
+head(s)
+
+#we now have sampling distribution for weight 
+#Now, we calculate the mean and standard distributions of the sampling distribution
+z <- NULL
+for (i in 1:100) {
+    z[i] <- mean(s[[i]]) #this is now the sampling distribution of sample means 
+}
+
+
+mean(z)
+sd(z)
+
+mean(s[[100]])
+sd(s[[100]])
+```
+#### How do the standard deviations of means compare to the standard errors estimated in [5]? 
+Answer: 
+The mean and standard deviation of the sampling distribution are: 143.5722 and 3.46294
+mean and standard deviation from 1 sample from [5]: 142.2536 and 16.22658
+The means are quite similar but the standard deviation is much smaller when the samples are pooled together v/s when theres only 1 sample of n=30. 
+
+#### What do these sampling distributions look like (a graph might help here)? Are they normally distributed?
+
+Yes, the distribution seems somewhat normal (for an n=30).
+
+```{r weight_sampling_dist}
+hist(z, probability = TRUE, main = "sampling distribution of sample means of weight")
+```
+
+### Variable: Height
+```{r problem6.height}
+stdev <- function(y) {
+  sqrt(sum((y - mean(y))^2)/length(y))}
+
+
+set.seed(1)
+y <- d$height #change variable every time
+x <- rnorm(1000, mean(y), stdev(y))
+hist(x, probability = TRUE)
+
+k <- 99  # number of samples. 
+n <- 30  # size of each sample
+s <- NULL  # dummy variable to hold each sample
+for (i in 1:k) {
+    s[[i]] <- sample(x, size = n, replace = FALSE)
+}
+
+s[[100]] <- s_height # appending the sample of size n from question 5 to the sampling distribution
+head(s)
+
+#we now have sampling distribution for height
+#Now, we calculate the mean and standard distributions of the sampling distribution
+z <- NULL
+for (i in 1:100) {
+    z[i] <- mean(s[[i]]) #this is now the sampling distribution of sample means 
+}
+
+
+mean(z)
+sd(z) 
+
+mean(s[[100]])
+sd(s[[100]])
+```
+#### How do the standard deviations of means compare to the standard errors estimated in [5]? 
+Answer: 
+The mean and standard deviation of the sampling distribution are: 67.54057 and 0.8227284
+mean and standard deviation from 1 sample from [5]: 66.14336 and 3.50242
+The means are quite similar but the standard deviation is much smaller when the samples are pooled together v/s when theres only 1 sample of n=30. 
+
+#### What do these sampling distributions look like (a graph might help here)? Are they normally distributed?
+
+Yes, the distribution seems somewhat normal (for an n=30), but the one for weight looked more normal in comparison. 
+
+```{r height_sampling_dist}
+hist(z, probability = TRUE, main = "sampling distribution of sample means of heights")
+```
+### Variable: Age
+```{r problem6.age}
+stdev <- function(y) {
+  sqrt(sum((y - mean(y))^2)/length(y))}
+
+
+set.seed(1)
+y <- d$age #change variable every time
+x <- rnorm(1000, mean(y), stdev(y))
+hist(x, probability = TRUE)
+
+k <- 99  # number of samples. 
+n <- 30  # size of each sample
+s <- NULL  # dummy variable to hold each sample
+for (i in 1:k) {
+    s[[i]] <- sample(x, size = n, replace = FALSE)
+}
+
+s[[100]] <- s_age # appending the sample of size n from question 5 to the sampling distribution
+head(s)
+
+#we now have sampling distribution for age
+#Now, we calculate the mean and standard distributions of the sampling distribution
+z <- NULL
+for (i in 1:100) {
+    z[i] <- mean(s[[i]]) #this is now the sampling distribution of sample means 
+}
+
+
+mean(z)
+sd(z) 
+
+mean(s[[100]])
+sd(s[[100]])
+```
+#### How do the standard deviations of means compare to the standard errors estimated in [5]? 
+Answer: 
+The mean and standard deviation of the sampling distribution are: 19.997 and 0.5579205
+mean and standard deviation from 1 sample from [5]: 20.18707 and 2.782201
+The means are quite similar but the standard deviation is much smaller when the samples are pooled together v/s when theres only 1 sample of n=30. 
+
+#### What do these sampling distributions look like (a graph might help here)? Are they normally distributed?
+
+Yes, the distribution seems somewhat normal (for an n=30).
+
+```{r age_sampling_dist}
+hist(z, probability = TRUE, main = "sampling distribution of sample means of age")
+```
+### Variable: No. of Zombies Killed
+```{r problem6.kills}
+
+set.seed(1)
+y <- d$zombies_killed #change variable every time
+x <- rpois(1000, lambda = mean(y)) #Using rpois() instead of rnorm()
+hist(x, probability = TRUE)
+
+#reesehs: I wonder if you could explain why you are using rpois? Is is necessary? I'm just genuinely curious!
+
+k <- 99  # number of samples. 
+n <- 30  # size of each sample
+s <- NULL  # dummy variable to hold each sample
+for (i in 1:k) {
+    s[[i]] <- sample(x, size = n, replace = FALSE)
+}
+
+head(s)
+
+#we now have sampling distribution for zombies killed 
+#Now, we calculate the mean and standard distributions of the sampling distribution
+z <- NULL
+for (i in 1:99) {
+    z[i] <- mean(s[[i]]) #this is now the sampling distribution of sample means 
+}
+
+z[100] <- mean(s_zombies_killed) #instead of adding the sample information for question 5 to s, I am adding the mean of the sample from question 5 to the sampling distribution of sample means because the first 99 samples in s are poisson and the sample from question 5 is normal approximation of a poisson
+
+mean(z)
+sd(z)
+
+mean(s_zombies_killed)
+sd(s_zombies_killed)
+```
+#### How do the standard deviations of means compare to the standard errors estimated in [5]? 
+Answer: 
+The mean and standard deviation of the sampling distribution are: 3.026536 and 0.311075
+mean and standard deviation from 1 sample from [5]: 3.020259 and 1.833484
+The means are quite similar but the standard deviation is much smaller when the samples are pooled together v/s when theres only 1 sample of n=30. 
+
+#### What do these sampling distributions look like (a graph might help here)? Are they normally distributed?
+
+Yes, the distribution seems somewhat normal (for an n=30). This happens even though the population isn't normally distributed.
+
+```{r kills_sampling_dist}
+hist(z, probability = TRUE, main = "sampling distribution of sample means of no.of kills")
+```
+### Variable: Years of Education
+```{r problem6.edu}
+set.seed(1)
+y <- d$years_of_education #change variable every time
+x <- rpois(1000, lambda = mean(y)) #Using rpois() instead of rnorm()
+hist(x, probability = TRUE)
+
+k <- 99  # number of samples. 
+n <- 30  # size of each sample
+s <- NULL  # dummy variable to hold each sample
+for (i in 1:k) {
+    s[[i]] <- sample(x, size = n, replace = FALSE)
+}
+
+head(s)
+
+#we now have sampling distribution for years of education
+#Now, we calculate the mean and standard distributions of the sampling distribution
+z <- NULL
+for (i in 1:99) {
+    z[i] <- mean(s[[i]]) #this is now the sampling distribution of sample means 
+}
+
+z[100] <- mean(s_education) #instead of adding the sample information for question 5 to s, I am adding the mean of the sample from question 5 to the sampling distribution of sample means because the first 99 samples in s are poisson and the sample from question 5 is normal approximation of a poisson
+
+mean(z)
+sd(z)
+
+mean(s_education)
+sd(s_education)
+```
+#### How do the standard deviations of means compare to the standard errors estimated in [5]? 
+Answer: 
+The mean and standard deviation of the sampling distribution are: 3.032347 and 0.3130838
+mean and standard deviation from 1 sample from [5]: 3.367994 and 1.76994
+The means are quite similar but the standard deviation is much smaller when the samples are pooled together v/s when theres only 1 sample of n=30. 
+
+#### What do these sampling distributions look like (a graph might help here)? Are they normally distributed?
+
+Yes, the distribution seems somewhat normal (for an n=30). This happens even though the population isn't normally distributed.
+
+```{r edu_sampling_dist}
+hist(z, probability = TRUE, main = "sampling distribution of sample means of years of education")
+```
+## Challenges I faced: 
+1. I think there were so many variables and the code I wrote doesn't feel very efficient. 
+2. I had a hard time figuring out what the distribution for zombies_killed and years_of_education was. Initially I thought it was binomial but it seems like Poisson
+3. I had normally approximated the poisson distributions, so combining the sample from question 5 and the other 99 samples from question 6 needed to be different from the normally distributed variables
+4. I had to update R. Not fun. 
+
+## Peer Commentary:
+I thought that you did an amazing job and I'm really in awe of your organization and efficent code! I left suggestions throughout your code, but there's not much I can really do to help since you seem to have everything figured out! The only thing is at the end when you were doing histograms before each variable I was a little confused. So if you could just make a comment explaining I think that would be really helpful. Other than that I'm so glad that I got to see your code! Please let me know if you have any questions
